@@ -139,30 +139,37 @@
   @media (max-width: 740px) {
     body { align-items: stretch; }
     .frame {
-      width: 100vw; min-height: 100dvh; border-radius: 0; border: none;
+      width: 100vw; height: 100dvh; border-radius: 0; border: none;
       box-shadow: none; background: transparent;
-      padding: 6px 8px calc(8px + env(safe-area-inset-bottom));
-      display: flex; flex-direction: column;
+      padding: 4px 6px calc(6px + env(safe-area-inset-bottom));
+      display: flex; flex-direction: column; overflow: hidden;
     }
-    .title { font-size: 22px; margin-bottom: 4px; }
+    .title { flex: 0 0 auto; font-size: 19px; margin-bottom: 2px; }
     .title small { display: none; }
-    .wrap { flex: 1; flex-direction: column; align-items: center; gap: 8px; justify-content: flex-start; min-height: 0; }
-    canvas#board { height: min(46dvh, 460px); width: auto; border-width: 3px; box-shadow: 0 0 0 3px var(--gold), inset 0 0 18px rgba(255,255,255,.4); }
-    .side { flex-direction: row; flex-wrap: wrap; width: 100%; justify-content: center; gap: 6px; align-items: stretch; }
-    .card { flex: 0 1 auto; padding: 6px 10px; border-radius: 12px; box-shadow: 0 3px 0 var(--gold-d); }
-    .card h2 { font-size: 10px; margin-bottom: 2px; padding-bottom: 2px; border-bottom: none; }
-    .stat { font-size: 20px; }
+    /* 中央エリア（盤面＋ステータス）が伸縮し、操作ボタンは下に固定 */
+    .wrap { flex: 1 1 auto; min-height: 0; flex-direction: column; align-items: center; gap: 5px; justify-content: flex-start; }
+    .board-area { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; }
+    canvas#board {
+      height: auto; width: auto; max-height: 100%; max-width: 94vw; min-height: 0;
+      border-width: 3px; box-shadow: 0 0 0 3px var(--gold), inset 0 0 18px rgba(255,255,255,.4);
+    }
+    .side { flex: 0 0 auto; flex-direction: row; flex-wrap: wrap; width: 100%; justify-content: center; gap: 5px; align-items: stretch; }
+    .card { flex: 0 1 auto; padding: 4px 9px; border-radius: 10px; box-shadow: 0 3px 0 var(--gold-d); }
+    .card h2 { font-size: 9px; margin-bottom: 1px; padding-bottom: 1px; border-bottom: none; }
+    .stat { font-size: 16px; }
     .keys-card { display: none; }
-    canvas#next { width: 50px; height: 50px; }
-    .bgm-btns { flex-direction: row; flex-wrap: wrap; justify-content: center; }
-    .bgm-btns button { padding: 6px 9px; font-size: 12px; }
-    #soundBtn { width: auto; padding: 7px 14px; }
-    .touch { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; width: 100%; margin-top: 4px; }
-    .touch button { padding: 18px 0; font-size: 24px; box-shadow: 0 4px 0 var(--gold-d); }
+    canvas#next { width: 38px; height: 38px; }
+    .bgm-btns { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px; }
+    .bgm-btns button { padding: 5px 8px; font-size: 11px; box-shadow: 0 2px 0 var(--gold-d); }
+    #soundBtn { width: auto; padding: 5px 12px; font-size: 12px; box-shadow: 0 2px 0 var(--gold-d); }
+    /* 操作ボタン：常に画面最下部に表示 */
+    .touch { flex: 0 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; width: 100%; margin: 4px 0 0; }
+    .touch button { padding: 13px 0; font-size: 22px; box-shadow: 0 4px 0 var(--gold-d); }
   }
   @media (max-width: 740px) and (orientation: landscape) {
-    canvas#board { height: min(80dvh, 460px); }
     .title { display: none; }
+    .touch button { padding: 9px 0; }
+    .side { gap: 4px; }
   }
 </style>
 </head>
@@ -209,16 +216,15 @@
           </div>
         </div>
         <button id="soundBtn" class="sound-toggle">🔊 サウンド: ON</button>
-
-        <div class="touch" id="touch">
-          <button data-act="left">←</button>
-          <button data-act="rotate">⟳</button>
-          <button data-act="right">→</button>
-          <button data-act="drop">⤓</button>
-          <button data-act="down">↓</button>
-          <button data-act="pause">⏸</button>
-        </div>
       </div>
+    </div>
+    <div class="touch" id="touch">
+      <button data-act="left">←</button>
+      <button data-act="rotate">⟳</button>
+      <button data-act="right">→</button>
+      <button data-act="drop">⤓</button>
+      <button data-act="down">↓</button>
+      <button data-act="pause">⏸</button>
     </div>
   </div>
 
