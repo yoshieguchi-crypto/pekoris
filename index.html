@@ -50,16 +50,30 @@
     border: 5px solid #fff;
     box-shadow: 0 0 0 5px var(--gold), 0 18px 44px rgba(150,90,60,.35);
   }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-bottom: 12px; flex-wrap: wrap;
+  }
   .title {
-    text-align: center;
-    font-size: 34px;
+    text-align: left;
+    font-size: 30px;
     font-weight: 800;
-    letter-spacing: .06em;
+    letter-spacing: .04em;
     color: #ff7aa8;
-    margin-bottom: 14px;
     text-shadow: 2px 2px 0 #fff, 4px 4px 0 var(--gold);
   }
-  .title small { display:block; font-size: 12px; color: var(--gold-d); letter-spacing:.4em; margin-top:4px; text-shadow:none; }
+  .title small { display:block; font-size: 11px; color: var(--gold-d); letter-spacing:.4em; margin-top:3px; text-shadow:none; }
+  .controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .bgm-mini { display: flex; gap: 5px; }
+  .ctrl-btn, .bgm-mini button {
+    font-family: inherit; font-size: 17px; line-height: 1;
+    padding: 7px 9px; border-radius: 12px; cursor: pointer;
+    background: #fff; color: var(--gold-d);
+    border: 2px solid var(--gold); box-shadow: 0 3px 0 var(--gold-d);
+    transition: transform .06s ease;
+  }
+  .bgm-mini button.active { background: linear-gradient(180deg, #ffb0cd, #ff8fb1); color: #fff; border-color: #fff; }
+  .ctrl-btn:active, .bgm-mini button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--gold-d); }
   .wrap { display: flex; gap: 22px; align-items: flex-start; }
   .board-area { position: relative; }
   canvas#board {
@@ -119,23 +133,14 @@
   }
   button:hover { filter: brightness(1.05); }
   button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--gold-d); }
-  .sound-toggle {
-    background: #fff; color: var(--gold-d);
-    border: 3px solid var(--gold); border-radius: 30px; padding: 9px 12px; font-size: 13px; width: 100%;
-    box-shadow: 0 3px 0 var(--gold-d);
-  }
-  .bgm-btns { display: flex; flex-direction: column; gap: 7px; }
-  .bgm-btns button {
-    font-size: 13px; padding: 8px 10px; border-radius: 12px;
-    background: #fff; color: var(--text); border: 2px solid var(--gold);
-    box-shadow: 0 3px 0 var(--gold-d); letter-spacing: .02em;
-  }
-  .bgm-btns button.active {
-    background: linear-gradient(180deg, #ffb0cd, #ff8fb1); color: #fff;
-    border-color: #fff;
-  }
   .touch { display: none; margin-top: 14px; grid-template-columns: repeat(3,1fr); gap: 9px; width: 100%; }
-  .touch button { padding: 16px 0; font-size: 18px; background: var(--panel2); color: var(--text); border-color: var(--gold-d); }
+  .touch button {
+    padding: 16px 0; font-size: 18px; background: var(--panel2); color: var(--text);
+    border-color: var(--gold-d); touch-action: none; -webkit-user-select: none; user-select: none;
+  }
+  .touch .t-rot  { background: #fff3cf; }
+  .touch .t-down { background: #d8f0ff; }
+  .touch .t-hard { background: #ffdcea; }
   @media (max-width: 740px) {
     body { align-items: stretch; }
     .frame {
@@ -144,8 +149,12 @@
       padding: 4px 6px calc(6px + env(safe-area-inset-bottom));
       display: flex; flex-direction: column; overflow: hidden;
     }
-    .title { flex: 0 0 auto; font-size: 19px; margin-bottom: 2px; }
+    .topbar { flex: 0 0 auto; margin-bottom: 3px; gap: 6px; flex-wrap: nowrap; }
+    .title { font-size: 18px; }
     .title small { display: none; }
+    .controls { gap: 4px; }
+    .bgm-mini { gap: 4px; }
+    .ctrl-btn, .bgm-mini button { font-size: 15px; padding: 6px 7px; border-radius: 10px; box-shadow: 0 2px 0 var(--gold-d); }
     /* 中央エリア（盤面＋ステータス）が伸縮し、操作ボタンは下に固定 */
     .wrap { flex: 1 1 auto; min-height: 0; flex-direction: column; align-items: center; gap: 5px; justify-content: flex-start; }
     .board-area { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; }
@@ -159,9 +168,6 @@
     .stat { font-size: 16px; }
     .keys-card { display: none; }
     canvas#next { width: 38px; height: 38px; }
-    .bgm-btns { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 5px; }
-    .bgm-btns button { padding: 5px 8px; font-size: 11px; box-shadow: 0 2px 0 var(--gold-d); }
-    #soundBtn { width: auto; padding: 5px 12px; font-size: 12px; box-shadow: 0 2px 0 var(--gold-d); }
     /* 操作ボタン：常に画面最下部に表示 */
     .touch { flex: 0 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; width: 100%; margin: 4px 0 0; }
     .touch button { padding: 13px 0; font-size: 22px; box-shadow: 0 4px 0 var(--gold-d); }
@@ -175,7 +181,19 @@
 </head>
 <body>
   <div class="frame">
-    <div class="title">🐫 ペコリス 🐫<small>P E K O R I S</small></div>
+    <div class="topbar">
+      <div class="title">🐫 ペコリス 🐫<small>P E K O R I S</small></div>
+      <div class="controls">
+        <button id="pauseBtn" class="ctrl-btn" title="ストップ／一時停止">⏸</button>
+        <button id="soundBtn" class="ctrl-btn" title="サウンド ON/OFF">🔊</button>
+        <div class="bgm-mini" id="bgmBtns">
+          <button data-bgm="0" title="BGM:ポップ">🎵</button>
+          <button data-bgm="1" title="BGM:ゆめ">🌙</button>
+          <button data-bgm="2" title="BGM:アラビアン">🐫</button>
+          <button data-bgm="-1" title="BGM OFF">✕</button>
+        </div>
+      </div>
+    </div>
     <div class="wrap">
       <div class="board-area">
         <canvas id="board"></canvas>
@@ -199,32 +217,22 @@
           <h2>操作</h2>
           <div class="keys">
             <b>← →</b> 移動<br>
-            <b>↑</b> 回転<br>
+            <b>↑ / Z</b> 右 / 左回転<br>
             <b>↓</b> ソフト落下<br>
             <b>Space</b> 一気に落下<br>
             <b>P</b> 一時停止
           </div>
           <div class="glyphs">🐫 🌴 ⭐ 🔺</div>
         </div>
-        <div class="card">
-          <h2>BGM</h2>
-          <div class="bgm-btns" id="bgmBtns">
-            <button data-bgm="0">🎵 ポップ</button>
-            <button data-bgm="1">🌙 ゆめ</button>
-            <button data-bgm="2">🐫 アラビアン</button>
-            <button data-bgm="-1">OFF</button>
-          </div>
-        </div>
-        <button id="soundBtn" class="sound-toggle">🔊 サウンド: ON</button>
       </div>
     </div>
     <div class="touch" id="touch">
+      <button data-act="rotL" class="t-rot">↺</button>
+      <button data-act="down" class="t-down">↓</button>
+      <button data-act="rotR" class="t-rot">↻</button>
       <button data-act="left">←</button>
-      <button data-act="rotate">⟳</button>
+      <button data-act="hard" class="t-hard">⤓</button>
       <button data-act="right">→</button>
-      <button data-act="drop">⤓</button>
-      <button data-act="down">↓</button>
-      <button data-act="pause">⏸</button>
     </div>
   </div>
 
@@ -245,6 +253,7 @@
   const ovMsg = document.getElementById('ov-msg');
   const startBtn = document.getElementById('startBtn');
   const soundBtn = document.getElementById('soundBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
 
   // ===== エジプト風カラーのテトロミノ =====
   const SHAPES = {
@@ -433,7 +442,12 @@
     const s = SHAPES[type];
     return { type, color: s.color, size: s.size, cells: s.cells.map(c => c.slice()) };
   }
-  function rotate(p) { const n = p.size; return p.cells.map(([x, y]) => [n - 1 - y, x]); }
+  function rotate(p, dir) {
+    const n = p.size;
+    return dir < 0
+      ? p.cells.map(([x, y]) => [y, n - 1 - x])     // 左回転（反時計回り）
+      : p.cells.map(([x, y]) => [n - 1 - y, x]);    // 右回転（時計回り）
+  }
   function collide(cells, p) {
     for (const [cx, cy] of cells) {
       const x = p.x + cx, y = p.y + cy;
@@ -498,8 +512,8 @@
   }
   function softDrop() { if (!move(0, 1)) { lock(); } else { score += 1; S.soft(); updateStats(); checkLevel(); } }
   function hardDrop() { let d = 0; while (move(0, 1)) d++; score += d * 2; S.hard(); updateStats(); checkLevel(); lock(); }
-  function tryRotate() {
-    const r = rotate(current);
+  function tryRotate(dir) {
+    const r = rotate(current, dir);
     for (const k of [0, -1, 1, -2, 2]) {
       const np = { x: pos.x + k, y: pos.y };
       if (!collide(r, np)) { current.cells = r; pos = np; S.rotate(); return; }
@@ -624,9 +638,10 @@
   function togglePause() {
     if (!running || over) return;
     paused = !paused;
+    pauseBtn.textContent = paused ? '▶' : '⏸';
     if (bgm.gain && actx) bgm.gain.gain.setTargetAtTime(paused ? 0.08 : (soundOn ? 0.5 : 0.0001), actx.currentTime, 0.05);
     if (paused) {
-      ovTitle.textContent = '一時停止'; ovMsg.textContent = 'P または再開ボタンで続行';
+      ovTitle.textContent = '一時停止'; ovMsg.textContent = 'ストップ中（▶ または再開で続行）';
       startBtn.textContent = '再開'; overlay.classList.remove('hidden');
     } else { overlay.classList.add('hidden'); }
   }
@@ -658,7 +673,8 @@
     switch (e.key) {
       case 'ArrowLeft':  if (move(-1,0)) S.move(); break;
       case 'ArrowRight': if (move(1,0))  S.move(); break;
-      case 'ArrowUp':    tryRotate(); break;
+      case 'ArrowUp': case 'x': case 'X': tryRotate(1); break;
+      case 'z': case 'Z':                 tryRotate(-1); break;
       case 'ArrowDown':  softDrop(); break;
       case ' ':          hardDrop(); break;
     }
@@ -666,7 +682,7 @@
   startBtn.addEventListener('click', () => { if (paused) { togglePause(); return; } start(); });
   soundBtn.addEventListener('click', () => {
     soundOn = !soundOn; initAudio();
-    soundBtn.textContent = soundOn ? '🔊 サウンド: ON' : '🔇 サウンド: OFF';
+    soundBtn.textContent = soundOn ? '🔊' : '🔇';
     if (bgm.gain && actx) {
       bgm.gain.gain.cancelScheduledValues(actx.currentTime);
       bgm.gain.gain.setTargetAtTime(soundOn ? 0.5 : 0.0001, actx.currentTime, 0.05);
@@ -690,16 +706,33 @@
     else { bgmStart(bgmSel); }   // 押すとすぐ試聴できる
   });
   highlightBgm();
-  document.getElementById('touch').addEventListener('click', (e) => {
-    const act = e.target.dataset.act; if (!act) return;
-    if (act === 'pause') { togglePause(); return; }
+  function doAct(act) {
     if (!running || over || paused || phase !== 'play') return;
-    if (act === 'left')   { if (move(-1,0)) S.move(); }
-    if (act === 'right')  { if (move(1,0))  S.move(); }
-    if (act === 'rotate') tryRotate();
-    if (act === 'down')   softDrop();
-    if (act === 'drop')   hardDrop();
+    switch (act) {
+      case 'left':  if (move(-1,0)) S.move(); break;
+      case 'right': if (move(1,0))  S.move(); break;
+      case 'rotL':  tryRotate(-1); break;
+      case 'rotR':  tryRotate(1);  break;
+      case 'down':  softDrop(); break;
+      case 'hard':  hardDrop(); break;
+    }
+  }
+  // タッチ操作：移動系は押しっぱなしで連続入力
+  let repeatTimer = null;
+  function stopRepeat() { if (repeatTimer) { clearInterval(repeatTimer); repeatTimer = null; } }
+  document.querySelectorAll('#touch button').forEach(btn => {
+    const act = btn.dataset.act;
+    const repeatable = (act === 'left' || act === 'right' || act === 'down');
+    btn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      doAct(act);
+      if (repeatable) { stopRepeat(); repeatTimer = setInterval(() => doAct(act), 110); }
+    });
+    btn.addEventListener('pointerup', stopRepeat);
+    btn.addEventListener('pointerleave', stopRepeat);
+    btn.addEventListener('pointercancel', stopRepeat);
   });
+  pauseBtn.addEventListener('click', togglePause);
 
   reset(); drawNext(); requestAnimationFrame(loop);
 })();
