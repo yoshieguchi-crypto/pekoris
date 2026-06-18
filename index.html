@@ -295,6 +295,9 @@
 
   let grid, current, next, pos, score, lines, level, dropInterval, running, paused, over, bag;
   let pendingGarbage = 0;      // レベル15以上で次の出現時に積むお邪魔段の数
+  let locking = false, lockTimer = 0, lockResets = 0;  // 着地後の猶予（スライド可能時間）
+  const LOCK_DELAY = 500;      // 着地してから固定するまでの猶予(ms)
+  const MAX_RESETS = 15;       // 猶予リセットの上限（無限に粘れないように）
   let phase = 'play';          // 'play' | 'clearing'
   let clearRows = [], clearTimer = 0;
   const CLEAR_DUR = 480;       // ライン消去演出の長さ(ms)
@@ -527,6 +530,7 @@
 
   function spawn() {
     if (pendingGarbage > 0) { applyGarbage(pendingGarbage); pendingGarbage = 0; }
+    locking = false; lockTimer = 0; lockResets = 0; acc = 0;
     current = next;
     next = makePiece(nextType());
     pos = { x: Math.floor((COLS - current.size) / 2), y: -1 };
@@ -574,21 +578,29 @@
     spawn();
   }
 
+  function resetLock() { lockTimer = LOCK_DELAY; if (++lockResets > MAX_RESETS) lockTimer = 0; }
   function move(dx, dy) {
     const np = { x: pos.x + dx, y: pos.y + dy };
-    if (!collide(current.cells, np)) { pos = np; return true; }
+    if (!collide(current.cells, np)) {
+      pos = np;
+      if (locking && dy === 0) resetLock();   // 着地中の横移動は猶予を延長
+      return true;
+    }
     return false;
   }
-  function softDrop() { if (!move(0, 1)) { lock(); } else { score += 1; S.soft(); updateStats(); checkLevel(); } }
-  function hardDrop() { let d = 0; while (move(0, 1)) d++; score += d * 2; S.hard(); updateStats(); checkLevel(); lock(); }
+  function softDrop() { if (move(0, 1)) { score += 1; S.soft(); updateStats(); checkLevel(); } else if (locking) { lock(); } else { beginLock(); } }
+  function hardDrop() { let d = 0; while (move(0, 1)) d++; score += d * 2; S.hard(); updateStats(); checkLevel(); beginLock(); }
+  // 落下ボタン：1回目で一気に落として猶予、もう一度押す（ダブルクリック）と即固定
+  function dropAction() { if (locking) { lock(); } else { hardDrop(); } }
   function tryRotate(dir) {
     const r = rotate(current, dir);
     for (const k of [0, -1, 1, -2, 2]) {
       const np = { x: pos.x + k, y: pos.y };
-      if (!collide(r, np)) { current.cells = r; pos = np; S.rotate(); return; }
+      if (!collide(r, np)) { current.cells = r; pos = np; S.rotate(); if (locking) resetLock(); return; }
     }
   }
-  function tick() { if (!move(0, 1)) lock(); }
+  function beginLock() { locking = true; lockTimer = LOCK_DELAY; lockResets = 0; }
+  function canFall() { return current && !collide(current.cells, { x: pos.x, y: pos.y + 1 }); }
 
   // ===== 描画 =====
   function drawCell(c, x, y, color, ghost) {
@@ -673,7 +685,7 @@
 
   // スコア連動レベルアップ：500点ごとにレベルが1上がり、落下が速くなる
   const LEVEL_STEP = 500;
-  const GARBAGE_LEVEL = 15;    // この レベル以降は速度を上げず、お邪魔段で難しくする
+  const GARBAGE_LEVEL = 13;    // この レベル以降は速度を上げず、お邪魔段で難しくする
   function checkLevel() {
     const newLevel = Math.floor(score / LEVEL_STEP) + 1;
     if (newLevel > level) {
@@ -684,7 +696,7 @@
       // 15以上は速度据え置き（14相当のまま）
       const eff = Math.min(level, GARBAGE_LEVEL - 1);
       dropInterval = Math.max(70, 800 - (eff - 1) * 60);
-      if (garbageLevels > 0) pendingGarbage += garbageLevels * 3;
+      if (garbageLevels > 0) pendingGarbage += garbageLevels * 1;
       S.level();
       popups.push({ x: COLS / 2 * CELL, y: 3 * CELL, text: 'レベル ' + level + '!', sub: garbageLevels > 0 ? 'お邪魔段アップ' : 'スピードアップ', life: 1400, max: 1400, gold: true });
       updateStats();
@@ -696,6 +708,7 @@
     score = 0; lines = 0; level = 1; dropInterval = 800;
     over = false; paused = false; phase = 'play';
     clearRows = []; popups = []; acc = 0; pendingGarbage = 0;
+    locking = false; lockTimer = 0; lockResets = 0;
     bag = newBag(); next = makePiece(nextType());
     updateStats();
   }
@@ -738,8 +751,17 @@
     const dt = t - (lastT || t); lastT = t;
     if (running && !paused && !over) {
       if (phase === 'play') {
-        acc += dt;
-        if (acc >= dropInterval) { acc = 0; tick(); }
+        if (!locking) {
+          acc += dt;
+          if (acc >= dropInterval) { acc = 0; if (!move(0, 1)) beginLock(); }
+        } else if (canFall()) {
+          // 着地中に隙間ができたら、ずるっと滑り込ませる
+          while (move(0, 1)) {}
+          resetLock();
+        } else {
+          lockTimer -= dt;
+          if (lockTimer <= 0) lock();
+        }
       } else if (phase === 'clearing') {
         clearTimer -= dt;
         if (clearTimer <= 0) finishClear();
@@ -763,7 +785,7 @@
       case 'ArrowUp': case 'x': case 'X': tryRotate(1); break;
       case 'z': case 'Z':                 tryRotate(-1); break;
       case 'ArrowDown':  softDrop(); break;
-      case ' ':          hardDrop(); break;
+      case ' ':          dropAction(); break;
     }
   });
   startBtn.addEventListener('click', () => { if (paused) { togglePause(); return; } start(); });
@@ -806,7 +828,7 @@
       case 'rot':   tryRotate(1); break;
       case 'slamL': moveToWall(-1); break;
       case 'slamR': moveToWall(1);  break;
-      case 'hard':  hardDrop(); break;
+      case 'hard':  dropAction(); break;
     }
   }
   // タッチ操作：左右移動は押しっぱなしで連続入力
