@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#ffd0e4">
+<title>ペコリス 🐫</title>
+<!-- LINEで送ったときのプレビュー表示 -->
+<meta property="og:title" content="ペコリス 🐫">
+<meta property="og:description" content="かわいいテトリス！指でブロックを動かして遊ぼう♪">
+<meta property="og:type" content="website">
+<style>
+  :root {
+    --sand:   #fff1cf;
+    --sand-d: #e6b85c;
+    --gold:   #ffd23f;
+    --gold-d: #e69a2e;
+    --lapis:  #4aa3e0;
+    --pink:   #ff8fb1;
+    --dark:   #6b4a8c;
+    --panel:  #fbe4b0;
+    --panel2: #fff3d2;
+    --text:   #5a3a1a;
+    --ink:    #5a3a1a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%;
+    min-height: 100dvh;
+    color: var(--text);
+    font-family: "Comic Sans MS", "Hiragino Maru Gothic ProN", "Meiryo", "Yu Gothic UI", sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background:
+      radial-gradient(circle at 50% 120%, #ffe79e, #ffd0e4 45%, #b6e3ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .frame {
+    padding: 22px;
+    border-radius: 26px;
+    background:
+      linear-gradient(180deg, #fff7e4, var(--panel));
+    border: 5px solid #fff;
+    box-shadow: 0 0 0 5px var(--gold), 0 18px 44px rgba(150,90,60,.35);
+  }
+  .title {
+    text-align: center;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    color: #ff7aa8;
+    margin-bottom: 14px;
+    text-shadow: 2px 2px 0 #fff, 4px 4px 0 var(--gold);
+  }
+  .title small { display:block; font-size: 12px; color: var(--gold-d); letter-spacing:.4em; margin-top:4px; text-shadow:none; }
+  .wrap { display: flex; gap: 22px; align-items: flex-start; }
+  .board-area { position: relative; }
+  canvas#board {
+    background:
+      linear-gradient(180deg, #bfe8ff, #ffe6b0);
+    border-radius: 18px;
+    border: 4px solid #fff;
+    box-shadow: 0 0 0 4px var(--gold), inset 0 0 26px rgba(255,255,255,.4), 0 6px 18px rgba(150,90,60,.3);
+    display: block;
+  }
+  .side { display: flex; flex-direction: column; gap: 14px; width: 168px; }
+  .card {
+    background: var(--panel2);
+    border: 3px solid #fff;
+    border-radius: 16px;
+    padding: 12px 14px;
+    box-shadow: 0 4px 0 var(--gold-d);
+  }
+  .card h2 {
+    font-size: 13px; letter-spacing: .12em;
+    color: var(--gold-d);
+    margin-bottom: 8px;
+    border-bottom: 2px dotted var(--gold-d);
+    padding-bottom: 5px;
+  }
+  .stat { font-size: 30px; font-weight: 800; color: #ff7aa8; text-shadow: 1px 1px 0 #fff; }
+  canvas#next { display: block; margin: 0 auto; }
+  .keys { font-size: 13px; line-height: 1.95; color: var(--text); }
+  .keys b { color: #ff7aa8; }
+  .glyphs { text-align:center; font-size: 22px; letter-spacing:.2em; margin-top: 4px; }
+  .overlay {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 16px;
+    background: rgba(255,240,210,.9);
+    border-radius: 16px;
+    text-align: center;
+  }
+  .overlay.hidden { display: none; }
+  .overlay .ank { font-size: 48px; }
+  .overlay h1 { font-size: 30px; color: #ff7aa8; letter-spacing:.04em; text-shadow: 2px 2px 0 #fff; }
+  .overlay p { color: var(--gold-d); font-size: 14px; }
+  button {
+    background: linear-gradient(180deg, #ffe06b, var(--gold));
+    color: var(--ink);
+    border: 3px solid #fff;
+    border-radius: 30px;
+    padding: 12px 30px;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing:.06em;
+    cursor: pointer;
+    box-shadow: 0 4px 0 var(--gold-d);
+    transition: transform .08s ease, filter .15s ease;
+  }
+  button:hover { filter: brightness(1.05); }
+  button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--gold-d); }
+  .sound-toggle {
+    background: #fff; color: var(--gold-d);
+    border: 3px solid var(--gold); border-radius: 30px; padding: 9px 12px; font-size: 13px; width: 100%;
+    box-shadow: 0 3px 0 var(--gold-d);
+  }
+  .bgm-btns { display: flex; flex-direction: column; gap: 7px; }
+  .bgm-btns button {
+    font-size: 13px; padding: 8px 10px; border-radius: 12px;
+    background: #fff; color: var(--text); border: 2px solid var(--gold);
+    box-shadow: 0 3px 0 var(--gold-d); letter-spacing: .02em;
+  }
+  .bgm-btns button.active {
+    background: linear-gradient(180deg, #ffb0cd, #ff8fb1); color: #fff;
+    border-color: #fff;
+  }
+  .touch { display: none; margin-top: 14px; grid-template-columns: repeat(3,1fr); gap: 9px; width: 100%; }
+  .touch button { padding: 16px 0; font-size: 18px; background: var(--panel2); color: var(--text); border-color: var(--gold-d); }
+  @media (max-width: 740px) {
+    body { align-items: stretch; }
+    .frame {
+      width: 100vw; min-height: 100dvh; border-radius: 0; border: none;
+      box-shadow: none; background: transparent;
+      padding: 6px 8px calc(8px + env(safe-area-inset-bottom));
+      display: flex; flex-direction: column;
+    }
+    .title { font-size: 22px; margin-bottom: 4px; }
+    .title small { display: none; }
+    .wrap { flex: 1; flex-direction: column; align-items: center; gap: 8px; justify-content: flex-start; min-height: 0; }
+    canvas#board { height: min(46dvh, 460px); width: auto; border-width: 3px; box-shadow: 0 0 0 3px var(--gold), inset 0 0 18px rgba(255,255,255,.4); }
+    .side { flex-direction: row; flex-wrap: wrap; width: 100%; justify-content: center; gap: 6px; align-items: stretch; }
+    .card { flex: 0 1 auto; padding: 6px 10px; border-radius: 12px; box-shadow: 0 3px 0 var(--gold-d); }
+    .card h2 { font-size: 10px; margin-bottom: 2px; padding-bottom: 2px; border-bottom: none; }
+    .stat { font-size: 20px; }
+    .keys-card { display: none; }
+    canvas#next { width: 50px; height: 50px; }
+    .bgm-btns { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+    .bgm-btns button { padding: 6px 9px; font-size: 12px; }
+    #soundBtn { width: auto; padding: 7px 14px; }
+    .touch { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; width: 100%; margin-top: 4px; }
+    .touch button { padding: 18px 0; font-size: 24px; box-shadow: 0 4px 0 var(--gold-d); }
+  }
+  @media (max-width: 740px) and (orientation: landscape) {
+    canvas#board { height: min(80dvh, 460px); }
+    .title { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="title">🐫 ペコリス 🐫<small>P E K O R I S</small></div>
+    <div class="wrap">
+      <div class="board-area">
+        <canvas id="board"></canvas>
+        <div id="overlay" class="overlay">
+          <div class="ank">🐫✨</div>
+          <h1 id="ov-title">ペコリスであそぼ！</h1>
+          <p id="ov-msg">矢印キーでブロックをくるくる動かそう</p>
+          <button id="startBtn">スタート</button>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="card">
+          <h2>NEXT</h2>
+          <canvas id="next" width="120" height="120"></canvas>
+        </div>
+        <div class="card"><h2>スコア</h2><div class="stat" id="score">0</div></div>
+        <div class="card"><h2>ライン</h2><div class="stat" id="lines">0</div></div>
+        <div class="card"><h2>レベル</h2><div class="stat" id="level">1</div></div>
+        <div class="card keys-card">
+          <h2>操作</h2>
+          <div class="keys">
+            <b>← →</b> 移動<br>
+            <b>↑</b> 回転<br>
+            <b>↓</b> ソフト落下<br>
+            <b>Space</b> 一気に落下<br>
+            <b>P</b> 一時停止
+          </div>
+          <div class="glyphs">🐫 🌴 ⭐ 🔺</div>
+        </div>
+        <div class="card">
+          <h2>BGM</h2>
+          <div class="bgm-btns" id="bgmBtns">
+            <button data-bgm="0">🎵 ポップ</button>
+            <button data-bgm="1">🌙 ゆめ</button>
+            <button data-bgm="2">🐫 アラビアン</button>
+            <button data-bgm="-1">OFF</button>
+          </div>
+        </div>
+        <button id="soundBtn" class="sound-toggle">🔊 サウンド: ON</button>
+
+        <div class="touch" id="touch">
+          <button data-act="left">←</button>
+          <button data-act="rotate">⟳</button>
+          <button data-act="right">→</button>
+          <button data-act="drop">⤓</button>
+          <button data-act="down">↓</button>
+          <button data-act="pause">⏸</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const COLS = 10, ROWS = 20, CELL = 30;
+  const board = document.getElementById('board');
+  const ctx = board.getContext('2d');
+  board.width = COLS * CELL; board.height = ROWS * CELL;
+  const nextCanvas = document.getElementById('next');
+  const nctx = nextCanvas.getContext('2d');
+
+  const scoreEl = document.getElementById('score');
+  const linesEl = document.getElementById('lines');
+  const levelEl = document.getElementById('level');
+  const overlay = document.getElementById('overlay');
+  const ovTitle = document.getElementById('ov-title');
+  const ovMsg = document.getElementById('ov-msg');
+  const startBtn = document.getElementById('startBtn');
+  const soundBtn = document.getElementById('soundBtn');
+
+  // ===== エジプト風カラーのテトロミノ =====
+  const SHAPES = {
+    I: { color: '#5ad1e6', cells: [[0,1],[1,1],[2,1],[3,1]], size: 4 }, // ポップ水色
+    O: { color: '#ffd23f', cells: [[1,0],[2,0],[1,1],[2,1]], size: 4 }, // たまご色
+    T: { color: '#c79bff', cells: [[1,0],[0,1],[1,1],[2,1]], size: 3 }, // ふじ色
+    S: { color: '#8fd96b', cells: [[1,0],[2,0],[0,1],[1,1]], size: 3 }, // わかば
+    Z: { color: '#ff8fb1', cells: [[0,0],[1,0],[1,1],[2,1]], size: 3 }, // ももいろ
+    J: { color: '#6fa8ff', cells: [[0,0],[0,1],[1,1],[2,1]], size: 3 }, // そら色
+    L: { color: '#ffae5c', cells: [[2,0],[0,1],[1,1],[2,1]], size: 3 }, // みかん
+  };
+  const TYPES = Object.keys(SHAPES);
+
+  let grid, current, next, pos, score, lines, level, dropInterval, running, paused, over, bag;
+  let phase = 'play';          // 'play' | 'clearing'
+  let clearRows = [], clearTimer = 0;
+  const CLEAR_DUR = 480;       // ライン消去演出の長さ(ms)
+  let popups = [];             // 浮き上がる得点表示
+  let lastT = 0, acc = 0;
+
+  // ===== サウンド（Web Audio 合成・外部ファイル不要） =====
+  // 高級感：リバーブ(残響) + ディレイ(きらめき) + 倍音つきのオルゴール風音色
+  let actx = null, soundOn = true, master = null, verbSend = null, delaySend = null;
+  function initAudio() {
+    if (!actx) {
+      try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ return; }
+      master = actx.createGain(); master.gain.value = 0.9; master.connect(actx.destination);
+      // リバーブ（合成インパルス応答）
+      const verb = actx.createConvolver(); verb.buffer = makeImpulse(2.4, 2.6);
+      verbSend = actx.createGain(); verbSend.gain.value = 0.22;
+      verbSend.connect(verb); verb.connect(actx.destination);
+      // ディレイ（やわらかい余韻）
+      const dly = actx.createDelay(); dly.delayTime.value = 0.28;
+      const fb = actx.createGain(); fb.gain.value = 0.28;
+      dly.connect(fb); fb.connect(dly);
+      const dlyTone = actx.createBiquadFilter(); dlyTone.type = 'lowpass'; dlyTone.frequency.value = 3000;
+      delaySend = actx.createGain(); delaySend.gain.value = 0.16;
+      delaySend.connect(dly); dly.connect(dlyTone); dlyTone.connect(actx.destination);
+    }
+    if (actx && actx.state === 'suspended') actx.resume();
+  }
+  function makeImpulse(dur, decay) {
+    const rate = actx.sampleRate, len = Math.floor(rate * dur), buf = actx.createBuffer(2, len, rate);
+    for (let c = 0; c < 2; c++) {
+      const d = buf.getChannelData(c);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+    return buf;
+  }
+  // オルゴール風の1音（基音＋やわらかい倍音＋残響）
+  function voice(freq, dur, opt) {
+    if (!actx || !soundOn) return;
+    opt = opt || {};
+    const vol = opt.vol == null ? 0.1 : opt.vol;
+    const t0 = actx.currentTime + (opt.when || 0);
+    const type = opt.type || 'sine';
+    const g = actx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.018);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    const o1 = actx.createOscillator(); o1.type = type; o1.frequency.value = freq;
+    o1.connect(g);
+    g.connect(master); if (verbSend) g.connect(verbSend); if (delaySend && opt.shimmer !== false) g.connect(delaySend);
+    o1.start(t0); o1.stop(t0 + dur + 0.05);
+    // きらめく倍音（オクターブ上）
+    const g2 = actx.createGain();
+    g2.gain.setValueAtTime(0.0001, t0);
+    g2.gain.exponentialRampToValueAtTime(vol * 0.32, t0 + 0.02);
+    g2.gain.exponentialRampToValueAtTime(0.0001, t0 + dur * 0.7);
+    const o2 = actx.createOscillator(); o2.type = 'sine'; o2.frequency.value = freq * 2.01;
+    o2.connect(g2); g2.connect(master); if (verbSend) g2.connect(verbSend);
+    o2.start(t0); o2.stop(t0 + dur + 0.05);
+  }
+  function glide(f1, f2, dur, vol) {
+    if (!actx || !soundOn) return;
+    const t0 = actx.currentTime;
+    const g = actx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    const o = actx.createOscillator(); o.type = 'sine';
+    o.frequency.setValueAtTime(f1, t0);
+    o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+    o.connect(g); g.connect(master); if (verbSend) g.connect(verbSend);
+    o.start(t0); o.stop(t0 + dur + 0.05);
+  }
+  // 明るいメジャー・ペンタトニック
+  const CUTE = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51];
+  const S = {
+    move:   () => voice(880, 0.20, { vol: 0.05, type: 'sine' }),
+    rotate: () => { voice(784, 0.18, { vol: 0.06, type: 'triangle' }); voice(1175, 0.24, { vol: 0.045, when: 0.04 }); },
+    soft:   () => voice(659, 0.16, { vol: 0.035 }),
+    hard:   () => { glide(1320, 523, 0.20, 0.07); voice(880, 0.30, { vol: 0.05, when: 0.06 }); },
+    lock:   () => { voice(523, 0.34, { vol: 0.075, type: 'triangle' }); voice(784, 0.34, { vol: 0.04, when: 0.01 }); },
+    line:   (n) => { for (let i = 0; i < 3 + n; i++) voice(CUTE[i % CUTE.length], 0.5, { vol: 0.085, when: i * 0.075, type: 'triangle' }); },
+    level:  () => { [0,2,4,5,7].forEach((idx,k) => voice(CUTE[idx], 0.55, { vol: 0.085, when: k * 0.1, type: 'triangle' })); },
+    over:   () => { [1046.5, 880, 659.25, 523.25].forEach((f,k) => voice(f, 0.6, { vol: 0.085, when: k * 0.15, type: 'sine' })); },
+  };
+
+  // ===== BGM（3曲・ループ） =====
+  const NOTE = { C:0, 'C#':1, D:2, 'D#':3, E:4, F:5, 'F#':6, G:7, 'G#':8, A:9, 'A#':10, B:11 };
+  function nf(name) {
+    const m = name.match(/^([A-G]#?)(\d)$/);
+    const semi = NOTE[m[1]] + (parseInt(m[2]) + 1) * 12;
+    return 440 * Math.pow(2, (semi - 69) / 12);
+  }
+  // [音名 or null(休符), 拍数]
+  const TRACKS = [
+    { // 0: ポップ（明るいハ長調）
+      name: 'ポップ', bpm: 138, leadType: 'triangle', bassType: 'sine',
+      lead: [['E5',.5],['G5',.5],['C6',.5],['G5',.5],['A5',.5],['G5',.5],['E5',.5],['C5',.5],
+             ['D5',.5],['E5',.5],['G5',.5],['E5',.5],['D5',1],[null,.5],['G5',.5],
+             ['F5',.5],['A5',.5],['C6',.5],['A5',.5],['G5',.5],['E5',.5],['C5',.5],['D5',.5],
+             ['E5',1],[null,.5],['G5',.5],['C6',1],[null,1]],
+      bass: [['C3',1],['G2',1],['A2',1],['G2',1],['F2',1],['C3',1],['G2',1],['G2',1]] },
+    { // 1: ゆめ（やさしいヘ長調・ゆったり）
+      name: 'ゆめ', bpm: 100, leadType: 'sine', bassType: 'sine',
+      lead: [['F5',1],['A5',1],['C6',1],['A5',1],['A#5',1],['A5',1],['G5',2],
+             ['E5',1],['G5',1],['C6',1],['A5',1],['G5',1],['F5',1],['F5',2],
+             ['A5',1],['G5',1],['F5',1],['D5',1],['E5',1],['F5',1],['C6',2],[null,2]],
+      bass: [['F2',2],['C3',2],['D3',2],['A#2',2],['C3',2],['F2',2]] },
+    { // 2: アラビアン（ヒジャズ音階・ニ短調系）
+      name: 'アラビアン', bpm: 124, leadType: 'triangle', bassType: 'sine',
+      lead: [['D5',.5],['D#5',.5],['F#5',.5],['G5',.5],['A5',.5],['G5',.5],['F#5',.5],['D#5',.5],
+             ['D5',1],['F#5',.5],['A5',.5],['A#5',.5],['A5',.5],['G5',.5],['F#5',.5],
+             ['D#5',.5],['D5',.5],['D#5',.5],['D5',.5],['C#5',.5],['D5',.5],[null,.5],['A4',.5],
+             ['D5',1.5],[null,.5]],
+      bass: [['D2',1],['A2',1],['A#2',1],['A2',1],['G2',1],['D2',1],['A2',1],['A2',1]] },
+  ];
+  const bgm = { playing: false, sel: 0, timer: null, gain: null, leadIdx: 0, bassIdx: 0, leadT: 0, bassT: 0 };
+  function bgmNote(freq, dur, t0, type, vol) {
+    const g = actx.createGain();
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    const o = actx.createOscillator(); o.type = type; o.frequency.value = freq;
+    o.connect(g); g.connect(bgm.gain); if (verbSend) g.connect(verbSend);
+    o.start(t0); o.stop(t0 + dur + 0.05);
+  }
+  function bgmSched() {
+    if (!bgm.playing || !actx) return;
+    const tr = TRACKS[bgm.sel], beat = 60 / tr.bpm, ahead = actx.currentTime + 0.25;
+    while (bgm.leadT < ahead) {
+      const [n, d] = tr.lead[bgm.leadIdx];
+      if (n) bgmNote(nf(n), d * beat * 0.92, bgm.leadT, tr.leadType, 0.07);
+      bgm.leadT += d * beat; bgm.leadIdx = (bgm.leadIdx + 1) % tr.lead.length;
+    }
+    while (bgm.bassT < ahead) {
+      const [n, d] = tr.bass[bgm.bassIdx];
+      if (n) bgmNote(nf(n) / 2, d * beat * 0.96, bgm.bassT, tr.bassType, 0.06);
+      bgm.bassT += d * beat; bgm.bassIdx = (bgm.bassIdx + 1) % tr.bass.length;
+    }
+  }
+  function bgmStart(i) {
+    initAudio(); if (!actx) return;
+    bgmStop(true);
+    bgm.sel = i; bgm.playing = true; bgm.leadIdx = 0; bgm.bassIdx = 0;
+    bgm.leadT = bgm.bassT = actx.currentTime + 0.15;
+    bgm.gain = actx.createGain(); bgm.gain.gain.value = 0.0001; bgm.gain.connect(master);
+    bgm.gain.gain.exponentialRampToValueAtTime(soundOn ? 0.5 : 0.0001, actx.currentTime + 0.6);
+    bgm.timer = setInterval(bgmSched, 30); bgmSched();
+  }
+  function bgmStop(immediate) {
+    if (bgm.timer) { clearInterval(bgm.timer); bgm.timer = null; }
+    bgm.playing = false;
+    if (bgm.gain && actx) {
+      const g = bgm.gain;
+      try {
+        g.gain.cancelScheduledValues(actx.currentTime);
+        g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), actx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + (immediate ? 0.05 : 0.4));
+      } catch(e) {}
+      setTimeout(() => { try { g.disconnect(); } catch(e){} }, 500);
+      bgm.gain = null;
+    }
+  }
+
+  // ===== 7-bag =====
+  function newBag() {
+    const b = TYPES.slice();
+    for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; }
+    return b;
+  }
+  function nextType() { if (!bag || !bag.length) bag = newBag(); return bag.pop(); }
+  function makePiece(type) {
+    const s = SHAPES[type];
+    return { type, color: s.color, size: s.size, cells: s.cells.map(c => c.slice()) };
+  }
+  function rotate(p) { const n = p.size; return p.cells.map(([x, y]) => [n - 1 - y, x]); }
+  function collide(cells, p) {
+    for (const [cx, cy] of cells) {
+      const x = p.x + cx, y = p.y + cy;
+      if (x < 0 || x >= COLS || y >= ROWS) return true;
+      if (y >= 0 && grid[y][x]) return true;
+    }
+    return false;
+  }
+
+  function spawn() {
+    current = next;
+    next = makePiece(nextType());
+    pos = { x: Math.floor((COLS - current.size) / 2), y: -1 };
+    if (collide(current.cells, pos)) gameOver();
+    drawNext();
+  }
+
+  function lock() {
+    for (const [cx, cy] of current.cells) {
+      const x = pos.x + cx, y = pos.y + cy;
+      if (y >= 0) grid[y][x] = current.color;
+    }
+    S.lock();
+    // 揃った行を検出
+    const full = [];
+    for (let y = 0; y < ROWS; y++) if (grid[y].every(c => c)) full.push(y);
+    if (full.length) {
+      clearRows = full;
+      clearTimer = CLEAR_DUR;
+      phase = 'clearing';
+      S.line(full.length);
+    } else {
+      spawn();
+    }
+  }
+
+  function finishClear() {
+    // 得点（ボーナス）計算
+    const n = clearRows.length;
+    const base = [0, 100, 300, 500, 800][n];   // シングル/ダブル/トリプル/テトリス
+    const gained = base * level;
+    // 行を削除
+    clearRows.sort((a, b) => a - b);
+    for (const y of clearRows) { grid.splice(y, 1); grid.unshift(new Array(COLS).fill(0)); }
+    score += gained;
+    lines += n;
+    // 浮き上がる得点表示
+    const midY = clearRows[Math.floor(clearRows.length / 2)];
+    const labels = { 1: 'シングル', 2: 'ダブル', 3: 'トリプル', 4: 'テトリス！' };
+    popups.push({ x: COLS / 2 * CELL, y: midY * CELL, text: '+' + gained, sub: labels[n] || '', life: 1100, max: 1100 });
+    updateStats();
+    checkLevel();
+    clearRows = [];
+    phase = 'play';
+    spawn();
+  }
+
+  function move(dx, dy) {
+    const np = { x: pos.x + dx, y: pos.y + dy };
+    if (!collide(current.cells, np)) { pos = np; return true; }
+    return false;
+  }
+  function softDrop() { if (!move(0, 1)) { lock(); } else { score += 1; S.soft(); updateStats(); checkLevel(); } }
+  function hardDrop() { let d = 0; while (move(0, 1)) d++; score += d * 2; S.hard(); updateStats(); checkLevel(); lock(); }
+  function tryRotate() {
+    const r = rotate(current);
+    for (const k of [0, -1, 1, -2, 2]) {
+      const np = { x: pos.x + k, y: pos.y };
+      if (!collide(r, np)) { current.cells = r; pos = np; S.rotate(); return; }
+    }
+  }
+  function tick() { if (!move(0, 1)) lock(); }
+
+  // ===== 描画 =====
+  function drawCell(c, x, y, color, ghost) {
+    const px = x * CELL, py = y * CELL;
+    if (ghost) {
+      c.strokeStyle = color; c.globalAlpha = 0.4; c.lineWidth = 2;
+      c.strokeRect(px + 2.5, py + 2.5, CELL - 5, CELL - 5); c.globalAlpha = 1; return;
+    }
+    c.fillStyle = color; c.fillRect(px + 1, py + 1, CELL - 2, CELL - 2);
+    c.fillStyle = 'rgba(255,255,255,.25)'; c.fillRect(px + 1, py + 1, CELL - 2, 4);
+    c.fillStyle = 'rgba(0,0,0,.22)'; c.fillRect(px + 1, py + CELL - 5, CELL - 2, 4);
+    // 砂金のような縁取り
+    c.strokeStyle = 'rgba(244,196,48,.25)'; c.lineWidth = 1;
+    c.strokeRect(px + 1.5, py + 1.5, CELL - 3, CELL - 3);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, board.width, board.height);
+    ctx.strokeStyle = 'rgba(120,90,40,.10)'; ctx.lineWidth = 1;
+    for (let x = 1; x < COLS; x++) { ctx.beginPath(); ctx.moveTo(x*CELL,0); ctx.lineTo(x*CELL,board.height); ctx.stroke(); }
+    for (let y = 1; y < ROWS; y++) { ctx.beginPath(); ctx.moveTo(0,y*CELL); ctx.lineTo(board.width,y*CELL); ctx.stroke(); }
+
+    for (let y = 0; y < ROWS; y++)
+      for (let x = 0; x < COLS; x++)
+        if (grid[y][x]) drawCell(ctx, x, y, grid[y][x]);
+
+    // ライン消去の演出（金色に光って弾ける）
+    if (phase === 'clearing') {
+      const prog = 1 - clearTimer / CLEAR_DUR;       // 0→1
+      const flash = Math.abs(Math.sin(prog * Math.PI * 4));
+      for (const y of clearRows) {
+        ctx.fillStyle = `rgba(244,196,48,${0.35 + 0.55 * flash})`;
+        ctx.fillRect(0, y * CELL, board.width, CELL);
+        ctx.fillStyle = `rgba(255,255,255,${0.5 * flash})`;
+        ctx.fillRect(0, y * CELL + CELL/2 - 2, board.width, 4);
+        // 中央から広がる光の粒
+        const r = prog * board.width * 0.6;
+        ctx.strokeStyle = `rgba(255,240,180,${0.7 * (1 - prog)})`;
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(board.width/2, y*CELL + CELL/2, r, 0, Math.PI*2); ctx.stroke();
+      }
+    }
+
+    if (current && phase === 'play') {
+      let gy = pos.y;
+      while (!collide(current.cells, { x: pos.x, y: gy + 1 })) gy++;
+      for (const [cx, cy] of current.cells) { const y = gy + cy; if (y >= 0) drawCell(ctx, pos.x + cx, y, current.color, true); }
+      for (const [cx, cy] of current.cells) { const y = pos.y + cy; if (y >= 0) drawCell(ctx, pos.x + cx, y, current.color); }
+    }
+
+    // 浮き上がる得点
+    for (const p of popups) {
+      const t = 1 - p.life / p.max;
+      const alpha = p.life < 300 ? p.life / 300 : 1;
+      ctx.globalAlpha = alpha;
+      ctx.textAlign = 'center';
+      ctx.fillStyle = p.gold ? '#ff7aa8' : '#ff5e9a';
+      ctx.font = 'bold 26px "Comic Sans MS", sans-serif';
+      ctx.shadowColor = '#fff'; ctx.shadowBlur = 6;
+      ctx.fillText(p.text, p.x, p.y - t * 50);
+      if (p.sub) { ctx.font = 'bold 16px "Comic Sans MS", sans-serif'; ctx.fillStyle = '#e69a2e'; ctx.fillText(p.sub, p.x, p.y - t * 50 + 22); }
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawNext() {
+    nctx.clearRect(0, 0, nextCanvas.width, nextCanvas.height);
+    if (!next) return;
+    const s = 24;
+    const xs = next.cells.map(c => c[0]), ys = next.cells.map(c => c[1]);
+    const w = Math.max(...xs) - Math.min(...xs) + 1, h = Math.max(...ys) - Math.min(...ys) + 1;
+    const offX = (nextCanvas.width - w*s)/2 - Math.min(...xs)*s;
+    const offY = (nextCanvas.height - h*s)/2 - Math.min(...ys)*s;
+    for (const [cx, cy] of next.cells) {
+      const px = offX + cx*s, py = offY + cy*s;
+      nctx.fillStyle = next.color; nctx.fillRect(px+1, py+1, s-2, s-2);
+      nctx.fillStyle = 'rgba(255,255,255,.25)'; nctx.fillRect(px+1, py+1, s-2, 3);
+    }
+  }
+
+  function updateStats() { scoreEl.textContent = score; linesEl.textContent = lines; levelEl.textContent = level; }
+
+  // スコア連動レベルアップ：500点ごとにレベルが1上がり、落下が速くなる
+  const LEVEL_STEP = 500;
+  function checkLevel() {
+    const newLevel = Math.floor(score / LEVEL_STEP) + 1;
+    if (newLevel > level) {
+      level = newLevel;
+      dropInterval = Math.max(70, 800 - (level - 1) * 60);   // レベルごとに少しずつ速く
+      S.level();
+      popups.push({ x: COLS / 2 * CELL, y: 3 * CELL, text: 'レベル ' + level + '!', sub: 'スピードアップ', life: 1400, max: 1400, gold: true });
+      updateStats();
+    }
+  }
+
+  function reset() {
+    grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
+    score = 0; lines = 0; level = 1; dropInterval = 800;
+    over = false; paused = false; phase = 'play';
+    clearRows = []; popups = []; acc = 0;
+    bag = newBag(); next = makePiece(nextType());
+    updateStats();
+  }
+  function start() {
+    initAudio(); reset(); running = true;
+    overlay.classList.add('hidden'); spawn();
+    if (bgmSel >= 0) bgmStart(bgmSel);
+  }
+  function gameOver() {
+    over = true; running = false; bgmStop(); S.over();
+    ovTitle.textContent = 'おしまい！';
+    ovMsg.textContent = `スコア ${score} ／ ${lines} ライン ／ レベル ${level}`;
+    startBtn.textContent = 'もういちど';
+    overlay.classList.remove('hidden');
+  }
+  function togglePause() {
+    if (!running || over) return;
+    paused = !paused;
+    if (bgm.gain && actx) bgm.gain.gain.setTargetAtTime(paused ? 0.08 : (soundOn ? 0.5 : 0.0001), actx.currentTime, 0.05);
+    if (paused) {
+      ovTitle.textContent = '一時停止'; ovMsg.textContent = 'P または再開ボタンで続行';
+      startBtn.textContent = '再開'; overlay.classList.remove('hidden');
+    } else { overlay.classList.add('hidden'); }
+  }
+
+  // ===== メインループ（requestAnimationFrame） =====
+  function loop(t) {
+    const dt = t - (lastT || t); lastT = t;
+    if (running && !paused && !over) {
+      if (phase === 'play') {
+        acc += dt;
+        if (acc >= dropInterval) { acc = 0; tick(); }
+      } else if (phase === 'clearing') {
+        clearTimer -= dt;
+        if (clearTimer <= 0) finishClear();
+      }
+    }
+    for (const p of popups) p.life -= dt;
+    popups = popups.filter(p => p.life > 0);
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // ===== 入力 =====
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key)) e.preventDefault();
+    if (!running || over) return;
+    if (e.key === 'p' || e.key === 'P') { togglePause(); return; }
+    if (paused || phase !== 'play') return;
+    switch (e.key) {
+      case 'ArrowLeft':  if (move(-1,0)) S.move(); break;
+      case 'ArrowRight': if (move(1,0))  S.move(); break;
+      case 'ArrowUp':    tryRotate(); break;
+      case 'ArrowDown':  softDrop(); break;
+      case ' ':          hardDrop(); break;
+    }
+  });
+  startBtn.addEventListener('click', () => { if (paused) { togglePause(); return; } start(); });
+  soundBtn.addEventListener('click', () => {
+    soundOn = !soundOn; initAudio();
+    soundBtn.textContent = soundOn ? '🔊 サウンド: ON' : '🔇 サウンド: OFF';
+    if (bgm.gain && actx) {
+      bgm.gain.gain.cancelScheduledValues(actx.currentTime);
+      bgm.gain.gain.setTargetAtTime(soundOn ? 0.5 : 0.0001, actx.currentTime, 0.05);
+    }
+  });
+
+  // BGM 切替
+  let bgmSel = 0;
+  const bgmBtns = document.getElementById('bgmBtns');
+  function highlightBgm() {
+    bgmBtns.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.bgm) === bgmSel);
+    });
+  }
+  bgmBtns.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    bgmSel = parseInt(b.dataset.bgm);
+    highlightBgm();
+    initAudio();
+    if (bgmSel < 0) { bgmStop(); }
+    else { bgmStart(bgmSel); }   // 押すとすぐ試聴できる
+  });
+  highlightBgm();
+  document.getElementById('touch').addEventListener('click', (e) => {
+    const act = e.target.dataset.act; if (!act) return;
+    if (act === 'pause') { togglePause(); return; }
+    if (!running || over || paused || phase !== 'play') return;
+    if (act === 'left')   { if (move(-1,0)) S.move(); }
+    if (act === 'right')  { if (move(1,0))  S.move(); }
+    if (act === 'rotate') tryRotate();
+    if (act === 'down')   softDrop();
+    if (act === 'drop')   hardDrop();
+  });
+
+  reset(); drawNext(); requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
