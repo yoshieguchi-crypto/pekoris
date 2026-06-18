@@ -109,9 +109,13 @@
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     gap: 12px; padding: 14px; overflow: auto;
-    background: rgba(255,240,210,.94);
     border-radius: 16px;
     text-align: center;
+    /* ゴージャスなエジプトの夕暮れ（夜空→黄金、太陽とピラミッド） */
+    background:
+      linear-gradient(180deg, rgba(20,10,40,.45), rgba(20,10,40,.10) 42%, rgba(60,30,12,.45)),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='600' viewBox='0 0 400 600' preserveAspectRatio='xMidYMid slice'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23241546'/%3E%3Cstop offset='0.35' stop-color='%237b3f6e'/%3E%3Cstop offset='0.58' stop-color='%23d9663b'/%3E%3Cstop offset='0.74' stop-color='%23f4a93c'/%3E%3Cstop offset='1' stop-color='%23f3d488'/%3E%3C/linearGradient%3E%3CradialGradient id='u' cx='0.5' cy='0.5' r='0.5'%3E%3Cstop offset='0' stop-color='%23fff6d8'/%3E%3Cstop offset='0.45' stop-color='%23ffd86b'/%3E%3Cstop offset='1' stop-color='%23ffb24a' stop-opacity='0'/%3E%3C/radialGradient%3E%3ClinearGradient id='p' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23d2a85e'/%3E%3Cstop offset='1' stop-color='%235c3c1c'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='600' fill='url(%23s)'/%3E%3Cg fill='%23fff' opacity='0.85'%3E%3Ccircle cx='60' cy='55' r='1.6'/%3E%3Ccircle cx='330' cy='40' r='1.3'/%3E%3Ccircle cx='350' cy='120' r='1.7'/%3E%3Ccircle cx='120' cy='90' r='1.2'/%3E%3Ccircle cx='280' cy='80' r='1.4'/%3E%3C/g%3E%3Ccircle cx='200' cy='250' r='150' fill='url(%23u)'/%3E%3Ccircle cx='200' cy='250' r='60' fill='%23ffe9a8'/%3E%3Crect y='466' width='400' height='140' fill='%23e8c87a'/%3E%3Cpolygon points='20,470 178,470 104,330' fill='url(%23p)' opacity='0.95'/%3E%3Cpolygon points='248,470 392,470 322,344' fill='url(%23p)' opacity='0.9'/%3E%3Cpolygon points='118,472 270,472 196,298' fill='url(%23p)'/%3E%3Cpolygon points='196,298 270,472 240,472' fill='%233a2410' opacity='0.35'/%3E%3Crect y='466' width='400' height='8' fill='%23f6e2a6' opacity='0.7'/%3E%3C/svg%3E") center/cover no-repeat,
+      #241546;
   }
   .overlay.hidden { display: none; }
   .name-entry { display: none; gap: 6px; align-items: center; }
@@ -121,18 +125,19 @@
     border: 2px solid var(--gold); border-radius: 10px; outline: none; text-align: center; color: var(--text);
   }
   .name-entry button { padding: 9px 16px; font-size: 14px; }
-  .ranking { width: 92%; max-width: 250px; }
-  .ranking h3 { color: var(--gold-d); font-size: 13px; text-align: center; margin-bottom: 5px; letter-spacing: .08em; }
+  .ranking { width: 92%; max-width: 250px; background: rgba(20,12,40,.4); border: 1px solid rgba(255,220,140,.4); border-radius: 12px; padding: 8px 6px; }
+  .ranking h3 { color: #ffe9a8; font-size: 13px; text-align: center; margin-bottom: 5px; letter-spacing: .08em; }
   .ranking ol { list-style: none; }
-  .ranking li { display: flex; align-items: center; gap: 8px; padding: 3px 9px; border-radius: 8px; font-size: 13px; }
-  .ranking li:nth-child(odd) { background: rgba(255,255,255,.55); }
-  .ranking li.me { background: #ffd0e4; font-weight: 700; }
+  .ranking li { display: flex; align-items: center; gap: 8px; padding: 3px 9px; border-radius: 8px; font-size: 13px; color: #fff; }
+  .ranking li:nth-child(odd) { background: rgba(255,255,255,.14); }
+  .ranking li.me { background: #ff7aa8; font-weight: 700; }
   .ranking li .nm { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ranking li .sc { font-weight: 800; color: #ff7aa8; }
-  .ranking .empty { text-align: center; color: var(--gold-d); font-size: 12px; }
-  .overlay .ank { font-size: 48px; }
-  .overlay h1 { font-size: 30px; color: #ff7aa8; letter-spacing:.04em; text-shadow: 2px 2px 0 #fff; }
-  .overlay p { color: var(--gold-d); font-size: 14px; }
+  .ranking li .sc { font-weight: 800; color: #ffd86b; }
+  .ranking li.me .sc { color: #fff; }
+  .ranking .empty { text-align: center; color: #ffe9a8; font-size: 12px; }
+  .overlay .ank { font-size: 48px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.5)); }
+  .overlay h1 { font-size: 32px; color: #ffe9a8; letter-spacing:.04em; text-shadow: 2px 2px 0 #6e4a22, 0 0 14px rgba(255,210,100,.6); }
+  .overlay p { color: #fff; font-size: 14px; text-shadow: 0 1px 3px rgba(0,0,0,.7); }
   button {
     background: linear-gradient(180deg, #ffe06b, var(--gold));
     color: var(--ink);
@@ -289,6 +294,7 @@
   const TYPES = Object.keys(SHAPES);
 
   let grid, current, next, pos, score, lines, level, dropInterval, running, paused, over, bag;
+  let pendingGarbage = 0;      // レベル15以上で次の出現時に積むお邪魔段の数
   let phase = 'play';          // 'play' | 'clearing'
   let clearRows = [], clearTimer = 0;
   const CLEAR_DUR = 480;       // ライン消去演出の長さ(ms)
@@ -382,6 +388,7 @@
     return 440 * Math.pow(2, (semi - 69) / 12);
   }
   // [音名 or null(休符), 拍数]
+  // chords: [[和音の音名配列, 拍数], ...]
   const TRACKS = [
     { // 0: ポップ（明るいハ長調）
       name: 'ポップ', bpm: 138, leadType: 'triangle', bassType: 'sine',
@@ -389,22 +396,25 @@
              ['D5',.5],['E5',.5],['G5',.5],['E5',.5],['D5',1],[null,.5],['G5',.5],
              ['F5',.5],['A5',.5],['C6',.5],['A5',.5],['G5',.5],['E5',.5],['C5',.5],['D5',.5],
              ['E5',1],[null,.5],['G5',.5],['C6',1],[null,1]],
-      bass: [['C3',1],['G2',1],['A2',1],['G2',1],['F2',1],['C3',1],['G2',1],['G2',1]] },
+      bass: [['C3',1],['G2',1],['A2',1],['G2',1],['F2',1],['C3',1],['G2',1],['G2',1]],
+      chords: [[['C4','E4','G4'],2],[['G3','B3','D4'],2],[['A3','C4','E4'],2],[['F3','A3','C4'],2]] },
     { // 1: ゆめ（やさしいヘ長調・ゆったり）
       name: 'ゆめ', bpm: 100, leadType: 'sine', bassType: 'sine',
       lead: [['F5',1],['A5',1],['C6',1],['A5',1],['A#5',1],['A5',1],['G5',2],
              ['E5',1],['G5',1],['C6',1],['A5',1],['G5',1],['F5',1],['F5',2],
              ['A5',1],['G5',1],['F5',1],['D5',1],['E5',1],['F5',1],['C6',2],[null,2]],
-      bass: [['F2',2],['C3',2],['D3',2],['A#2',2],['C3',2],['F2',2]] },
+      bass: [['F2',2],['C3',2],['D3',2],['A#2',2],['C3',2],['F2',2]],
+      chords: [[['F3','A3','C4'],2],[['C4','E4','G4'],2],[['D3','F3','A3'],2],[['A#3','D4','F4'],2],[['C4','E4','G4'],2],[['F3','A3','C4'],2]] },
     { // 2: アラビアン（ヒジャズ音階・ニ短調系）
       name: 'アラビアン', bpm: 124, leadType: 'triangle', bassType: 'sine',
       lead: [['D5',.5],['D#5',.5],['F#5',.5],['G5',.5],['A5',.5],['G5',.5],['F#5',.5],['D#5',.5],
              ['D5',1],['F#5',.5],['A5',.5],['A#5',.5],['A5',.5],['G5',.5],['F#5',.5],
              ['D#5',.5],['D5',.5],['D#5',.5],['D5',.5],['C#5',.5],['D5',.5],[null,.5],['A4',.5],
              ['D5',1.5],[null,.5]],
-      bass: [['D2',1],['A2',1],['A#2',1],['A2',1],['G2',1],['D2',1],['A2',1],['A2',1]] },
+      bass: [['D2',1],['A2',1],['A#2',1],['A2',1],['G2',1],['D2',1],['A2',1],['A2',1]],
+      chords: [[['D4','F#4','A4'],2],[['G3','A#3','D4'],2],[['A3','C#4','E4'],2],[['D4','F#4','A4'],2]] },
   ];
-  const bgm = { playing: false, sel: 0, timer: null, gain: null, leadIdx: 0, bassIdx: 0, leadT: 0, bassT: 0 };
+  const bgm = { playing: false, sel: 0, timer: null, gain: null, leadIdx: 0, bassIdx: 0, chordIdx: 0, leadT: 0, bassT: 0, chordT: 0 };
   function bgmNote(freq, dur, t0, type, vol) {
     const g = actx.createGain();
     g.gain.setValueAtTime(0.0001, t0);
@@ -414,27 +424,47 @@
     o.connect(g); g.connect(bgm.gain); if (verbSend) g.connect(verbSend);
     o.start(t0); o.stop(t0 + dur + 0.05);
   }
+  // 和音パッド（やわらかく持続して高級感を出す）
+  function bgmChord(names, dur, t0, vol) {
+    for (const n of names) {
+      const g = actx.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.linearRampToValueAtTime(vol, t0 + 0.08);
+      g.gain.setValueAtTime(vol, t0 + dur * 0.6);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      const o = actx.createOscillator(); o.type = 'triangle'; o.frequency.value = nf(n);
+      o.connect(g); g.connect(bgm.gain); if (verbSend) g.connect(verbSend);
+      o.start(t0); o.stop(t0 + dur + 0.05);
+    }
+  }
   function bgmSched() {
     if (!bgm.playing || !actx) return;
     const tr = TRACKS[bgm.sel], beat = 60 / tr.bpm, ahead = actx.currentTime + 0.25;
     while (bgm.leadT < ahead) {
       const [n, d] = tr.lead[bgm.leadIdx];
-      if (n) bgmNote(nf(n), d * beat * 0.92, bgm.leadT, tr.leadType, 0.07);
+      if (n) bgmNote(nf(n), d * beat * 0.92, bgm.leadT, tr.leadType, 0.11);
       bgm.leadT += d * beat; bgm.leadIdx = (bgm.leadIdx + 1) % tr.lead.length;
     }
     while (bgm.bassT < ahead) {
       const [n, d] = tr.bass[bgm.bassIdx];
-      if (n) bgmNote(nf(n) / 2, d * beat * 0.96, bgm.bassT, tr.bassType, 0.06);
+      if (n) bgmNote(nf(n) / 2, d * beat * 0.96, bgm.bassT, tr.bassType, 0.10);
       bgm.bassT += d * beat; bgm.bassIdx = (bgm.bassIdx + 1) % tr.bass.length;
+    }
+    if (tr.chords) {
+      while (bgm.chordT < ahead) {
+        const [names, d] = tr.chords[bgm.chordIdx];
+        if (names) bgmChord(names, d * beat * 0.98, bgm.chordT, 0.025);
+        bgm.chordT += d * beat; bgm.chordIdx = (bgm.chordIdx + 1) % tr.chords.length;
+      }
     }
   }
   function bgmStart(i) {
     initAudio(); if (!actx) return;
     bgmStop(true);
-    bgm.sel = i; bgm.playing = true; bgm.leadIdx = 0; bgm.bassIdx = 0;
-    bgm.leadT = bgm.bassT = actx.currentTime + 0.15;
+    bgm.sel = i; bgm.playing = true; bgm.leadIdx = 0; bgm.bassIdx = 0; bgm.chordIdx = 0;
+    bgm.leadT = bgm.bassT = bgm.chordT = actx.currentTime + 0.15;
     bgm.gain = actx.createGain(); bgm.gain.gain.value = 0.0001; bgm.gain.connect(master);
-    bgm.gain.gain.exponentialRampToValueAtTime(soundOn ? 0.5 : 0.0001, actx.currentTime + 0.6);
+    bgm.gain.gain.exponentialRampToValueAtTime(soundOn ? 0.85 : 0.0001, actx.currentTime + 0.6);
     bgm.timer = setInterval(bgmSched, 30); bgmSched();
   }
   function bgmStop(immediate) {
@@ -478,7 +508,25 @@
     return false;
   }
 
+  // 穴がランダムに開いたお邪魔段を1段つくる
+  function makeGarbageRow() {
+    const color = '#9c7b48';
+    const row = new Array(COLS).fill(color);
+    const holes = 2 + Math.floor(Math.random() * 3);   // 2〜4個の穴
+    const slots = Array.from({ length: COLS }, (_, i) => i);
+    for (let i = 0; i < holes; i++) {
+      const k = Math.floor(Math.random() * slots.length);
+      row[slots[k]] = 0; slots.splice(k, 1);
+    }
+    return row;
+  }
+  // 下からお邪魔段を count 段せり上げる
+  function applyGarbage(count) {
+    for (let k = 0; k < count; k++) { grid.shift(); grid.push(makeGarbageRow()); }
+  }
+
   function spawn() {
+    if (pendingGarbage > 0) { applyGarbage(pendingGarbage); pendingGarbage = 0; }
     current = next;
     next = makePiece(nextType());
     pos = { x: Math.floor((COLS - current.size) / 2), y: -1 };
@@ -625,13 +673,20 @@
 
   // スコア連動レベルアップ：500点ごとにレベルが1上がり、落下が速くなる
   const LEVEL_STEP = 500;
+  const GARBAGE_LEVEL = 15;    // この レベル以降は速度を上げず、お邪魔段で難しくする
   function checkLevel() {
     const newLevel = Math.floor(score / LEVEL_STEP) + 1;
     if (newLevel > level) {
+      // レベル15以上に上がった分だけ、お邪魔段を3段ずつ予約
+      let garbageLevels = 0;
+      for (let lv = level + 1; lv <= newLevel; lv++) if (lv >= GARBAGE_LEVEL) garbageLevels++;
       level = newLevel;
-      dropInterval = Math.max(70, 800 - (level - 1) * 60);   // レベルごとに少しずつ速く
+      // 15以上は速度据え置き（14相当のまま）
+      const eff = Math.min(level, GARBAGE_LEVEL - 1);
+      dropInterval = Math.max(70, 800 - (eff - 1) * 60);
+      if (garbageLevels > 0) pendingGarbage += garbageLevels * 3;
       S.level();
-      popups.push({ x: COLS / 2 * CELL, y: 3 * CELL, text: 'レベル ' + level + '!', sub: 'スピードアップ', life: 1400, max: 1400, gold: true });
+      popups.push({ x: COLS / 2 * CELL, y: 3 * CELL, text: 'レベル ' + level + '!', sub: garbageLevels > 0 ? 'お邪魔段アップ' : 'スピードアップ', life: 1400, max: 1400, gold: true });
       updateStats();
     }
   }
@@ -640,7 +695,7 @@
     grid = Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
     score = 0; lines = 0; level = 1; dropInterval = 800;
     over = false; paused = false; phase = 'play';
-    clearRows = []; popups = []; acc = 0;
+    clearRows = []; popups = []; acc = 0; pendingGarbage = 0;
     bag = newBag(); next = makePiece(nextType());
     updateStats();
   }
@@ -671,7 +726,7 @@
     if (!running || over) return;
     paused = !paused;
     pauseBtn.textContent = paused ? '▶' : '⏸';
-    if (bgm.gain && actx) bgm.gain.gain.setTargetAtTime(paused ? 0.08 : (soundOn ? 0.5 : 0.0001), actx.currentTime, 0.05);
+    if (bgm.gain && actx) bgm.gain.gain.setTargetAtTime(paused ? 0.12 : (soundOn ? 0.85 : 0.0001), actx.currentTime, 0.05);
     if (paused) {
       ovTitle.textContent = '一時停止'; ovMsg.textContent = 'ストップ中（▶ または再開で続行）';
       startBtn.textContent = '再開'; overlay.classList.remove('hidden');
@@ -717,7 +772,7 @@
     soundBtn.textContent = soundOn ? '🔊' : '🔇';
     if (bgm.gain && actx) {
       bgm.gain.gain.cancelScheduledValues(actx.currentTime);
-      bgm.gain.gain.setTargetAtTime(soundOn ? 0.5 : 0.0001, actx.currentTime, 0.05);
+      bgm.gain.gain.setTargetAtTime(soundOn ? 0.85 : 0.0001, actx.currentTime, 0.05);
     }
   });
 
