@@ -108,12 +108,28 @@
     position: absolute; inset: 0;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    gap: 16px;
-    background: rgba(255,240,210,.9);
+    gap: 12px; padding: 14px; overflow: auto;
+    background: rgba(255,240,210,.94);
     border-radius: 16px;
     text-align: center;
   }
   .overlay.hidden { display: none; }
+  .name-entry { display: none; gap: 6px; align-items: center; }
+  .name-entry.show { display: flex; }
+  .name-entry input {
+    font-family: inherit; font-size: 15px; padding: 8px 10px; width: 110px;
+    border: 2px solid var(--gold); border-radius: 10px; outline: none; text-align: center; color: var(--text);
+  }
+  .name-entry button { padding: 9px 16px; font-size: 14px; }
+  .ranking { width: 92%; max-width: 250px; }
+  .ranking h3 { color: var(--gold-d); font-size: 13px; text-align: center; margin-bottom: 5px; letter-spacing: .08em; }
+  .ranking ol { list-style: none; }
+  .ranking li { display: flex; align-items: center; gap: 8px; padding: 3px 9px; border-radius: 8px; font-size: 13px; }
+  .ranking li:nth-child(odd) { background: rgba(255,255,255,.55); }
+  .ranking li.me { background: #ffd0e4; font-weight: 700; }
+  .ranking li .nm { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ranking li .sc { font-weight: 800; color: #ff7aa8; }
+  .ranking .empty { text-align: center; color: var(--gold-d); font-size: 12px; }
   .overlay .ank { font-size: 48px; }
   .overlay h1 { font-size: 30px; color: #ff7aa8; letter-spacing:.04em; text-shadow: 2px 2px 0 #fff; }
   .overlay p { color: var(--gold-d); font-size: 14px; }
@@ -139,7 +155,7 @@
     border-color: var(--gold-d); touch-action: none; -webkit-user-select: none; user-select: none;
   }
   .touch .t-rot  { background: #fff3cf; }
-  .touch .t-down { background: #d8f0ff; }
+  .touch .t-slam { background: #d8f0ff; }
   .touch .t-hard { background: #ffdcea; }
   @media (max-width: 740px) {
     body { align-items: stretch; }
@@ -201,7 +217,12 @@
           <div class="ank">🐫✨</div>
           <h1 id="ov-title">ペコリスであそぼ！</h1>
           <p id="ov-msg">矢印キーでブロックをくるくる動かそう</p>
+          <div id="nameEntry" class="name-entry">
+            <input id="nameInput" type="text" maxlength="8" placeholder="なまえ">
+            <button id="saveScoreBtn">登録</button>
+          </div>
           <button id="startBtn">スタート</button>
+          <div id="ranking" class="ranking"></div>
         </div>
       </div>
 
@@ -227,12 +248,12 @@
       </div>
     </div>
     <div class="touch" id="touch">
-      <button data-act="rotL" class="t-rot">↺</button>
-      <button data-act="down" class="t-down">↓</button>
-      <button data-act="rotR" class="t-rot">↻</button>
       <button data-act="left">←</button>
-      <button data-act="hard" class="t-hard">⤓</button>
+      <button data-act="rot" class="t-rot">↻</button>
       <button data-act="right">→</button>
+      <button data-act="slamL" class="t-slam">⇤</button>
+      <button data-act="hard" class="t-hard">⤓</button>
+      <button data-act="slamR" class="t-slam">⇥</button>
     </div>
   </div>
 
@@ -624,6 +645,7 @@
     updateStats();
   }
   function start() {
+    if (pendingScore) commitScore();   // 未登録のスコアは自動保存
     initAudio(); reset(); running = true;
     overlay.classList.add('hidden'); spawn();
     if (bgmSel >= 0) bgmStart(bgmSel);
@@ -631,8 +653,18 @@
   function gameOver() {
     over = true; running = false; bgmStop(); S.over();
     ovTitle.textContent = 'おしまい！';
-    ovMsg.textContent = `スコア ${score} ／ ${lines} ライン ／ レベル ${level}`;
     startBtn.textContent = 'もういちど';
+    if (qualifies(score)) {
+      pendingScore = { score, lines, level };
+      try { nameInput.value = localStorage.getItem('pekoris_lastname') || ''; } catch(e) {}
+      nameEntry.classList.add('show');
+      ovMsg.textContent = `スコア ${score} ／ レベル ${level}　🎉ベスト10入り！`;
+    } else {
+      pendingScore = null;
+      nameEntry.classList.remove('show');
+      ovMsg.textContent = `スコア ${score} ／ ${lines} ライン ／ レベル ${level}`;
+    }
+    renderRanking();
     overlay.classList.remove('hidden');
   }
   function togglePause() {
@@ -706,23 +738,28 @@
     else { bgmStart(bgmSel); }   // 押すとすぐ試聴できる
   });
   highlightBgm();
+  function moveToWall(dir) {
+    let moved = false;
+    while (move(dir, 0)) moved = true;
+    if (moved) S.move();
+  }
   function doAct(act) {
     if (!running || over || paused || phase !== 'play') return;
     switch (act) {
       case 'left':  if (move(-1,0)) S.move(); break;
       case 'right': if (move(1,0))  S.move(); break;
-      case 'rotL':  tryRotate(-1); break;
-      case 'rotR':  tryRotate(1);  break;
-      case 'down':  softDrop(); break;
+      case 'rot':   tryRotate(1); break;
+      case 'slamL': moveToWall(-1); break;
+      case 'slamR': moveToWall(1);  break;
       case 'hard':  hardDrop(); break;
     }
   }
-  // タッチ操作：移動系は押しっぱなしで連続入力
+  // タッチ操作：左右移動は押しっぱなしで連続入力
   let repeatTimer = null;
   function stopRepeat() { if (repeatTimer) { clearInterval(repeatTimer); repeatTimer = null; } }
   document.querySelectorAll('#touch button').forEach(btn => {
     const act = btn.dataset.act;
-    const repeatable = (act === 'left' || act === 'right' || act === 'down');
+    const repeatable = (act === 'left' || act === 'right');
     btn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       doAct(act);
@@ -734,7 +771,55 @@
   });
   pauseBtn.addEventListener('click', togglePause);
 
-  reset(); drawNext(); requestAnimationFrame(loop);
+  // ===== ハイスコア（ベスト10・この端末のブラウザに保存） =====
+  const HS_KEY = 'pekoris_highscores_v1';
+  const rankingEl = document.getElementById('ranking');
+  const nameEntry = document.getElementById('nameEntry');
+  const nameInput = document.getElementById('nameInput');
+  const saveScoreBtn = document.getElementById('saveScoreBtn');
+  let pendingScore = null;
+  function loadScores() { try { return JSON.parse(localStorage.getItem(HS_KEY)) || []; } catch(e) { return []; } }
+  function saveScores(list) { try { localStorage.setItem(HS_KEY, JSON.stringify(list)); } catch(e) {} }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function qualifies(s) {
+    if (s <= 0) return false;
+    const list = loadScores();
+    return list.length < 10 || s > list[list.length - 1].score;
+  }
+  function renderRanking(highlightIdx) {
+    const list = loadScores();
+    let html = '<h3>🏆 ベスト10</h3>';
+    if (!list.length) { html += '<p class="empty">まだ記録がありません</p>'; }
+    else {
+      const medals = ['🥇','🥈','🥉'];
+      html += '<ol>';
+      list.forEach((r, i) => {
+        const rank = medals[i] || (i + 1) + '.';
+        const me = (i === highlightIdx) ? ' class="me"' : '';
+        html += `<li${me}><span>${rank}</span><span class="nm">${escapeHtml(r.name)}</span><span class="sc">${r.score}</span></li>`;
+      });
+      html += '</ol>';
+    }
+    rankingEl.innerHTML = html;
+  }
+  function commitScore() {
+    if (!pendingScore) return;
+    const name = (nameInput.value.trim() || 'ゲスト').slice(0, 8);
+    const list = loadScores();
+    const entry = { name, score: pendingScore.score, lines: pendingScore.lines, level: pendingScore.level };
+    list.push(entry);
+    list.sort((a, b) => b.score - a.score);
+    const top = list.slice(0, 10);
+    saveScores(top);
+    try { localStorage.setItem('pekoris_lastname', name); } catch(e) {}
+    pendingScore = null;
+    nameEntry.classList.remove('show');
+    renderRanking(top.indexOf(entry));
+  }
+  saveScoreBtn.addEventListener('click', commitScore);
+  nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); commitScore(); } });
+
+  reset(); drawNext(); renderRanking(); requestAnimationFrame(loop);
 })();
 </script>
 </body>
